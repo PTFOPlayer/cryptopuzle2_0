@@ -104,7 +104,7 @@ fn main() {
         .iter()
         .unique()
         .collect::<Vec<&(i128, i128, i128, i128)>>();
-    println!("working options created, {}, {:?}", options.len(), options);
+    println!("working options created, {}", options.len());
 
     let estim = options
         .par_iter()
@@ -112,29 +112,32 @@ fn main() {
             let (_, _, q, n) = t;
             let mut count = 0;
             let mut prev = 1;
+            let mut vec = vec![];
             for i in 0..public.len() {
                 for j in prev..*n {
                     if public[i] == (j * q) % n {
                         count += 1;
-                        prev = j;
+                        prev += j;
+                        vec.append(&mut vec![j]);
                         break;
                     }
                 }
             }
             if count == 8 {
-                return (*q, *n);
+                return (*q, *n, vec);
             }
-            return (0, 0);
+            return (0, 0, vec![]);
         })
-        .collect::<Vec<(i128, i128)>>();
+        .collect::<Vec<(i128, i128, Vec<i128>)>>();
 
     let mut estim = estim
         .iter()
         .unique()
         .sorted()
-        .collect::<Vec<&(i128, i128)>>();
+        .collect::<Vec<&(i128, i128, Vec<i128>)>>();
 
     estim.sort();
-
-    println!("first estimation, {}, {:?}", estim.len(), estim);
+    if estim.len() > 1 {
+        println!("estimation, {:?}", estim[1]);
+    }
 }
