@@ -61,7 +61,7 @@ fn main() {
         min,
         public.clone()
     );
-    
+
     println!("solivng...");
     
     let pairs = (1..bu + 1)
@@ -87,15 +87,13 @@ fn main() {
         .par_iter()
         .map(|t| {
             let (i, j) = t;
-            for n in  max..max*2 {
+            for n in  max+(min*2)..max+(max/4){
                 let mut inv = euc_lib::I128::euc_ext(n, *i).t;
                 if inv < 0 {
                     inv += n;
                 }
                 let q = (inv * public[0]) % n;
-                if euc_lib::I128::euc(q, n) == 1
-                    && public[0] == (i * q) % n
-                    && public[1] == (j * q) % n
+                if public[0] == (i * q) % n && public[1] == (j * q) % n
                 {
                     return (*i, *j, q, n);
                 }
