@@ -7,6 +7,7 @@ fn main() {
     let fastin = fs::read_to_string("./fastin.txt").unwrap();
     let lines = fastin.lines().collect::<Vec<&str>>();
 
+    println!("reding size");
     let size = match lines[0].parse::<i128>() {
         Ok(res) => res,
         Err(err) => {
@@ -15,6 +16,7 @@ fn main() {
         }
     };
 
+    println!("reading U");
     let bu = match lines[1].parse::<i128>() {
         Ok(res) => res,
         Err(err) => {
@@ -28,13 +30,11 @@ fn main() {
         exit(0);
     }
 
-    let mut sum = 0;
     let mut public = vec![];
     for i in 2..size + 2 {
         let buf = lines[i as usize];
         let val = match buf.parse::<i128>() {
             Ok(res) => {
-                sum += res;
                 res
             }
             Err(err) => {
@@ -54,15 +54,16 @@ fn main() {
         None => exit(0),
     };
     println!(
-        "size:{}, U:{}, max:{}, min:{}, sum:{}\n{:?}",
+        "size:{}, U:{}, max:{}, min:{},\n{:?}",
         size,
         bu,
         max,
         min,
-        sum,
         public.clone()
     );
-
+    
+    println!("solivng...");
+    
     let pairs = (1..bu + 1)
         .map(|i| {
             let mut vec = vec![];
@@ -86,8 +87,12 @@ fn main() {
         .par_iter()
         .map(|t| {
             let (i, j) = t;
-            for n in max..max*2  {
-                let q = (euc_lib::I128::euc_ext(n, *i).t * public[0]) % n;
+            for n in  max..max*2 {
+                let mut inv = euc_lib::I128::euc_ext(n, *i).t;
+                if inv < 0 {
+                    inv += n;
+                }
+                let q = (inv * public[0]) % n;
                 if euc_lib::I128::euc(q, n) == 1
                     && public[0] == (i * q) % n
                     && public[1] == (j * q) % n
@@ -95,7 +100,8 @@ fn main() {
                     return (*i, *j, q, n);
                 }
             }
-            return (0, 0, 0, 0);
+            return (0,0,0,0);
+            
         })
         .collect::<Vec<(i128, i128, i128, i128)>>();
 
@@ -122,7 +128,7 @@ fn main() {
                     }
                 }
             }
-            if count == 16 {
+            if count == size {
                 return (*q, *n, vec);
             }
             return (0, 0, vec![]);
@@ -136,7 +142,5 @@ fn main() {
         .collect::<Vec<&(i128, i128, Vec<i128>)>>();
 
     estim.sort();
-    if estim.len() > 1 {
-        println!("estimation, {:?}", estim[1]);
-    }
+    println!("estim: {}, {:?}", estim.len(), estim)
 }
