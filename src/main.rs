@@ -86,14 +86,13 @@ fn main() {
         .par_iter()
         .map(|t| {
             let (i, j) = t;
-            for n in max..(max+(sum/size)) {
-                for q in bu..n {
-                    if euc_lib::I128::euc(q, n) == 1
-                        && public[0] == (i * q) % n
-                        && public[1] == (j * q) % n
-                    {
-                        return (*i, *j, q, n);
-                    }
+            for n in max..max*2  {
+                let q = (euc_lib::I128::euc_ext(n, *i).t * public[0]) % n;
+                if euc_lib::I128::euc(q, n) == 1
+                    && public[0] == (i * q) % n
+                    && public[1] == (j * q) % n
+                {
+                    return (*i, *j, q, n);
                 }
             }
             return (0, 0, 0, 0);
@@ -104,14 +103,14 @@ fn main() {
         .iter()
         .unique()
         .collect::<Vec<&(i128, i128, i128, i128)>>();
-    println!("working options created, {}", options.len());
+    println!("working options created, {}, {:?}", options.len(), options);
 
     let estim = options
         .par_iter()
         .map(|t| {
             let (_, _, q, n) = t;
             let mut count = 0;
-            let mut prev = 1;
+            let mut prev = 0;
             let mut vec = vec![];
             for i in 0..public.len() {
                 for j in prev..*n {
@@ -123,7 +122,7 @@ fn main() {
                     }
                 }
             }
-            if count == 8 {
+            if count == 16 {
                 return (*q, *n, vec);
             }
             return (0, 0, vec![]);
