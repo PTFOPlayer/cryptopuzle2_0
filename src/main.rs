@@ -30,11 +30,13 @@ fn main() {
         exit(0);
     }
 
+    let mut sum = 0;
     let mut public = vec![];
     for i in 2..size + 2 {
         let buf = lines[i as usize];
         let val = match buf.parse::<i128>() {
             Ok(res) => {
+                sum += res;
                 res
             }
             Err(err) => {
@@ -54,20 +56,22 @@ fn main() {
         None => exit(0),
     };
     println!(
-        "size:{}, U:{}, max:{}, min:{},\n{:?}",
+        "size:{}, U:{}, sum:{}, avg:{}, max:{}, min:{},\n{:?}\n\n",
         size,
         bu,
+        sum,
+        sum/size,
         max,
         min,
         public.clone()
     );
 
-    println!("solivng...");
-    
+    println!("solivng...\n\n");
+
     let pairs = (1..bu + 1)
         .map(|i| {
             let mut vec = vec![];
-            for j in i + 1..bu + 1 {
+            for j in i..bu + 1 {
                 if euc_lib::I128::euc(i, j) == 1 {
                     vec.append(&mut vec![(i, j)]);
                 }
@@ -75,31 +79,45 @@ fn main() {
             return vec;
         })
         .collect::<Vec<Vec<(i128, i128)>>>();
-
     let pairs = pairs
         .into_iter()
         .flatten()
         .unique()
         .collect::<Vec<(i128, i128)>>();
-    println!("workable pairs created: {}", pairs.len());
+    println!("workable pairs created: {}\n", pairs.len());
 
     let options = pairs
         .par_iter()
         .map(|t| {
             let (i, j) = t;
-            for n in  max+(min*2)..max+(max/4){
+            for n in max+min..max+(sum/size) {
                 let mut inv = euc_lib::I128::euc_ext(n, *i).t;
                 if inv < 0 {
                     inv += n;
                 }
-                let q = (inv * public[0]) % n;
-                if public[0] == (i * q) % n && public[1] == (j * q) % n
-                {
+                let q = inv * public[0] % n;
+                if public[0] == (i * q) % n && public[1] == (j * q) % n {
+                    /*let mut count = 0;
+                    let mut prev = 0;
+                    let mut vec = vec![];
+                    for i_iter in 0..public.len() {
+                        for j_iter in prev..n {
+                            if public[i_iter] == (j_iter * q) % n {
+                                count += 1;
+                                prev += j_iter;
+                                vec.append(&mut vec![j_iter]);
+                                break;
+                            }
+                        }
+                    }
+                    if count == size {
+                        println!("N:{}, Q:{}, u:{:?}", n, q, vec);
+                    }
+                    */
                     return (*i, *j, q, n);
                 }
             }
-            return (0,0,0,0);
-            
+            return (0, 0, 0, 0);
         })
         .collect::<Vec<(i128, i128, i128, i128)>>();
 
@@ -107,7 +125,7 @@ fn main() {
         .iter()
         .unique()
         .collect::<Vec<&(i128, i128, i128, i128)>>();
-    println!("working options created, {}, {:?}", options.len(), options);
+    println!("working options created, {}, \n", options.len());
 
     let estim = options
         .par_iter()
@@ -138,7 +156,7 @@ fn main() {
         .unique()
         .sorted()
         .collect::<Vec<&(i128, i128, Vec<i128>)>>();
-
     estim.sort();
+    _ = estim.remove(0);
     println!("estim: {}, {:?}", estim.len(), estim)
 }
