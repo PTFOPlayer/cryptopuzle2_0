@@ -90,32 +90,20 @@ fn main() {
         .par_iter()
         .map(|t| {
             let (i, j) = t;
-            for n in max+min..max+(sum/size) {
+            let mut div = 1;
+            let mut n =  i128::abs((j*public[0]) - (i*public[1]));
+            while n > max {
+                n = n/div;
                 let mut inv = euc_lib::I128::euc_ext(n, *i).t;
                 if inv < 0 {
                     inv += n;
                 }
+
                 let q = inv * public[0] % n;
                 if public[0] == (i * q) % n && public[1] == (j * q) % n {
-                    /*let mut count = 0;
-                    let mut prev = 0;
-                    let mut vec = vec![];
-                    for i_iter in 0..public.len() {
-                        for j_iter in prev..n {
-                            if public[i_iter] == (j_iter * q) % n {
-                                count += 1;
-                                prev += j_iter;
-                                vec.append(&mut vec![j_iter]);
-                                break;
-                            }
-                        }
-                    }
-                    if count == size {
-                        println!("N:{}, Q:{}, u:{:?}", n, q, vec);
-                    }
-                    */
                     return (*i, *j, q, n);
                 }
+                div += 1;
             }
             return (0, 0, 0, 0);
         })
@@ -130,12 +118,14 @@ fn main() {
     let estim = options
         .par_iter()
         .map(|t| {
-            let (_, _, q, n) = t;
+            let (u0, u1, q, n) = t;
             let mut count = 0;
-            let mut prev = 0;
+            let mut prev = u0+u1;
             let mut vec = vec![];
-            for i in 0..public.len() {
-                for j in prev..*n {
+            vec.append(&mut vec![*u0]);
+            vec.append(&mut vec![*u1]);
+            for i in 2..public.len() {
+                for j in prev..(*n) {
                     if public[i] == (j * q) % n {
                         count += 1;
                         prev += j;
@@ -158,5 +148,5 @@ fn main() {
         .collect::<Vec<&(i128, i128, Vec<i128>)>>();
     estim.sort();
     _ = estim.remove(0);
-    println!("estim: {}, {:?}", estim.len(), estim)
+    println!("estim: {}, {:?}", estim.len(), estim[0])
 }
